@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Validator Pelat Nomor - DFA{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Text:wght@700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="road-line"></div>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-plate">DFA</span>
+      <span class="brand-text">Validator Pelat</span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' else '' }}">Beranda</a>
+      <a href="{{ url_for('tentang') }}" class="{{ 'active' if request.endpoint == 'tentang' else '' }}">Tentang</a>
+      <a href="{{ url_for('kode_wilayah') }}" class="{{ 'active' if request.endpoint == 'kode_wilayah' else '' }}">Kode Wilayah</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="foot">
+  <p>Setiap pelat diperiksa karakter demi karakter menggunakan mesin Deterministic Finite Automaton (DFA).</p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

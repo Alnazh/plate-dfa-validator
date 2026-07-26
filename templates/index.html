@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<header class="head">
+  <span class="eyebrow">VALIDATOR OTOMATIS BERBASIS MESIN STATE</span>
+  <h1>Validator Format Pelat Nomor Kendaraan</h1>
+  <p class="sub">Setiap karakter yang diketik disimulasikan lewat mesin DFA berikut ini, satu per satu, sampai jelas apakah pelat tersebut diterima atau ditolak.</p>
+</header>
+
+<section class="format-card">
+  <span class="format-label">Format yang diterima</span>
+  <div class="format-line">
+    <span class="tag tag-l">L (1-2)</span>
+    <span class="format-sep">spasi</span>
+    <span class="tag tag-d">D (1-4)</span>
+    <span class="format-sep">spasi</span>
+    <span class="tag tag-l">L (1-3)</span>
+  </div>
+  <div class="alphabet-legend">
+    <span><span class="mono hl">L</span> = huruf A-Z</span>
+    <span><span class="mono hl">D</span> = digit 0-9</span>
+    <span><span class="mono hl">S</span> = satu spasi</span>
+  </div>
+  <p class="format-note">1-2 huruf kode wilayah, 1-4 digit nomor urut, 1-3 huruf seri, jumlah digitnya boleh berbeda-beda selama masih dalam rentang itu. Contoh: <strong>B 1234 ABC</strong> (4 digit, format paling umum) atau <strong>D 12 AB</strong> (2 digit, wajar untuk nomor registrasi awal atau pelat cantik), keduanya sah. Lihat halaman <a href="{{ url_for('tentang') }}">Tentang</a> untuk penjelasan lengkap mesin DFA-nya, termasuk jenis pelat yang tidak tercakup.</p>
+</section>
+
+<form method="POST" action="{{ url_for('hasil') }}" class="plate-form">
+  <label class="plate-shell" for="plate">
+    <span class="bolt"></span>
+    <input type="text" id="plate" name="plate" placeholder="B 1234 ABC" autocomplete="off" autofocus>
+    <span class="bolt"></span>
+  </label>
+  <button type="submit">Periksa Pelat</button>
+</form>
+
+{% endblock %}
