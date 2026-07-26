@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Kode Wilayah - Validator Pelat Nomor DFA{% endblock %}
+
+{% block content %}
+
+<header class="head">
+  <span class="eyebrow">REFERENSI PELAT NOMOR</span>
+  <h1>Kode Huruf Wilayah dan Info Lainnya</h1>
+  <p class="sub">Huruf pertama pada kode wilayah pelat nomor menunjukkan tempat kendaraan pertama kali didaftarkan. Halaman ini merangkum kode tersebut per pulau, ditambah beberapa informasi lain seputar pelat nomor kendaraan di Indonesia.</p>
+</header>
+
+<section class="info-card">
+  <h2>Asal Usul Kode Wilayah</h2>
+  <p>Kode wilayah tidak selalu sama dengan batas provinsi saat ini. Sebagian besar kode ini diwariskan dari sistem karesidenan pada masa kolonial, sehingga satu provinsi bisa memiliki beberapa kode berbeda untuk tiap eks karesidenan di dalamnya. Jawa Tengah misalnya memiliki kode G, H, K, R, AA, dan AD sekaligus, masing masing untuk kelompok kota dan kabupaten yang berbeda.</p>
+  <p>Kode terdiri dari satu atau dua huruf. Huruf tambahan di belakang nomor urut, yang disebut huruf seri, biasanya dipakai untuk menandai kabupaten atau kota tertentu di dalam satu kode wilayah yang sama.</p>
+</section>
+
+{% for pulau, daftar in kode_wilayah.items() %}
+<section class="info-card">
+  <h2>{{ pulau }}</h2>
+  <table class="state-table">
+    <thead>
+      <tr><th>Kode</th><th>Daerah</th></tr>
+    </thead>
+    <tbody>
+      {% for kode, daerah in daftar %}
+      <tr><td class="mono">{{ kode }}</td><td>{{ daerah }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endfor %}
+
+<section class="info-card">
+  <h2>Informasi Tambahan</h2>
+  <ul class="flow-list">
+    <li><strong>Pemekaran wilayah</strong>, provinsi atau daerah baru hasil pemekaran umumnya memakai kode wilayah dari provinsi induknya sampai ada aturan baru yang menetapkan kode tersendiri.</li>
+    <li><strong>Masa berlaku</strong>, pelat fisik atau TNKB dicetak ulang setiap 5 tahun bersamaan dengan perpanjangan STNK, meski nomor registrasi kendaraan tetap sama.</li>
+    <li><strong>Warna pelat</strong>, sejak 2022 pelat kendaraan perorangan berangsur berubah dari dasar hitam menjadi dasar putih dengan tulisan hitam, sementara arti warna lain tetap seperti dijelaskan di halaman Tentang.</li>
+    <li><strong>Bukan penentu kepemilikan</strong>, kode wilayah hanya menunjukkan tempat pendaftaran pertama, bukan alamat pemilik saat ini, karena kendaraan bisa berpindah tangan tanpa mutasi pelat.</li>
+  </ul>
+</section>
+
+<section class="info-card cta-card">
+  <h2>Coba Validator</h2>
+  <p>Gunakan salah satu kode di atas untuk menyusun pelat contoh, lalu uji formatnya di halaman beranda.</p>
+  <a class="cta-button" href="{{ url_for('index') }}">Buka Validator</a>
+</section>
+
+{% endblock %}
