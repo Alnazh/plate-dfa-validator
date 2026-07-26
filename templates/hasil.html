@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Hasil Analisis - Validator Pelat DFA{% endblock %}
+
+{% block content %}
+
+<header class="head head-tight">
+  <span class="eyebrow">HASIL PEMERIKSAAN</span>
+  <h1>Hasil Pemeriksaan Pelat</h1>
+</header>
+
+<section class="result-hero {{ 'accepted' if result.accepted else 'rejected' }}">
+  <span class="stempel {{ 'ok' if result.accepted else 'no' }}">{{ 'SAH' if result.accepted else 'DITOLAK' }}</span>
+
+  <div class="rendered-plate">
+    {% for step in result.trace %}
+      <span class="rp-char {{ 'ok' if step.to_state != 'qtrap' else 'bad' }}">{{ step.char }}</span>
+    {% endfor %}
+  </div>
+
+  <p class="hero-verdict">
+    {% if result.accepted %}
+      Pelat ini sudah sesuai format yang berlaku.
+    {% else %}
+      Pelat ini tidak sesuai format yang berlaku.
+    {% endif %}
+  </p>
+</section>
+
+<details class="explain-toggle">
+  <summary>Lihat Penjelasan dan Diagram DFA</summary>
+
+  <section class="info-card">
+    <h2>{{ 'Kenapa Diterima' if result.accepted else 'Kenapa Ditolak' }}</h2>
+
+    {% if result.accepted %}
+      <p>Seluruh karakter pada pelat berhasil membawa mesin DFA berjalan dari state awal sampai ke salah satu state akhir, yang berarti susunan karakternya sudah sesuai pola yang ditentukan.</p>
+      <div class="breakdown">
+        <div class="breakdown-item">
+          <span class="breakdown-label">Kode Wilayah</span>
+          <span class="breakdown-value mono">{{ result.breakdown.wilayah }}</span>
+        </div>
+        <div class="breakdown-item">
+          <span class="breakdown-label">Nomor Urut</span>
+          <span class="breakdown-value mono">{{ result.breakdown.nomor }}</span>
+        </div>
+        <div class="breakdown-item">
+          <span class="breakdown-label">Huruf Seri</span>
+          <span class="breakdown-value mono">{{ result.breakdown.seri }}</span>
+        </div>
+      </div>
+    {% else %}
+      {% if result.reason %}
+        {% if result.reason.char %}
+        <p>
+          Pada karakter ke-{{ result.reason.position }}, yaitu <span class="mono hl">'{{ result.reason.char }}'</span>,
+          mesin tidak menemukan transisi yang valid dari state saat itu. Pada posisi tersebut seharusnya diisi
+          <strong>{{ result.reason.expected }}</strong>, sehingga mesin jatuh ke state jebakan qtrap. Begitu masuk ke
+          qtrap, mesin tidak bisa kembali lagi ke jalur yang benar walaupun karakter setelahnya sudah sesuai pola.
+        </p>
+        {% else %}
+        <p>
+          Input berhenti terlalu awal setelah karakter ke-{{ result.reason.position }}. Mesin masih menunggu
+          <strong>{{ result.reason.expected }}</strong> untuk bisa mencapai salah satu state akhir, tapi karakternya
+          sudah habis duluan.
+        </p>
+        {% endif %}
+      {% endif %}
+      <p class="format-note">Format yang benar: <span class="mono">LL SPASI DDDD SPASI LLL</span>, contoh <span class="mono hl">B 1234 ABC</span>. Ingat, spasi di antara tiap bagian wajib ada.</p>
+    {% endif %}
+  </section>
+
+  <section class="info-card diagram-card">
+    <h2>Diagram DFA</h2>
+    <p>Diagram di bawah menampilkan seluruh state dan transisi yang dimiliki mesin ini, tidak hanya yang dipakai pelat ini saja. Warna menunjukkan mana yang benar-benar dilalui.</p>
+
+    <div class="diagram-legend">
+      <div class="legend-item"><span class="legend-swatch swatch-green"></span> Dilalui oleh pelat ini</div>
+      <div class="legend-item"><span class="legend-swatch swatch-gray"></span> Ada di mesin, tapi tidak dilalui pelat ini</div>
+      <div class="legend-item"><span class="legend-swatch swatch-double"></span> State akhir, pelat sah kalau berhenti di sini</div>
+      <div class="legend-item"><span class="legend-swatch swatch-trap"></span> qtrap, state jebakan yang membuat pelat ditolak</div>
+    </div>
+
+    <div class="diagram-scroll">
+      <svg viewBox="0 0 1320 380" class="diagram-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#3a3d45"></path>
+          </marker>
+          <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6fbf73"></path>
+          </marker>
+          <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e2695c"></path>
+          </marker>
+        </defs>
+
+        {% for edge in result.diagram.edges %}
+        <g class="edge {{ 'active' if edge.active else '' }}">
+          <path d="{{ edge.d }}" fill="none" marker-end="url({{ '#arrowGreen' if edge.active else '#arrowGray' }})"></path>
+          <text x="{{ edge.lx }}" y="{{ edge.ly }}" class="edge-label">{{ edge.symbol }}</text>
+        </g>
+        {% endfor %}
+
+        {% if result.diagram.trap_edge %}
+        <g class="edge trap-edge active">
+          <path d="{{ result.diagram.trap_edge.d }}" fill="none" stroke-dasharray="6 5" marker-end="url(#arrowRed)"></path>
+        </g>
+        {% endif %}
+
+        {% for node in result.diagram.nodes %}
+        <g class="node {{ 'active' if node.active else '' }} {{ 'trap' if node.is_trap else '' }} {{ 'final' if node.id == result.final_state else '' }}">
+          {% if node.accepting %}
+          <circle cx="{{ node.x }}" cy="{{ node.y }}" r="30" class="ring-outer"></circle>
+          {% endif %}
+          <circle cx="{{ node.x }}" cy="{{ node.y }}" r="24" class="ring-inner"></circle>
+          <text x="{{ node.x }}" y="{{ node.y + 5 }}" class="node-label">{{ node.id }}</text>
+        </g>
+        {% endfor %}
+      </svg>
+    </div>
+    <p class="diagram-note">State yang sedang disorot dengan cincin lebih tebal adalah state terakhir tempat mesin berhenti, yaitu <span class="mono hl">{{ result.final_state }}</span> ({{ result.final_label }}).</p>
+  </section>
+
+  <section class="info-card">
+    <h2>Jejak Transisi State</h2>
+    <p>Baris merah menandai karakter yang menyebabkan mesin jatuh ke qtrap.</p>
+    <div class="trace-table">
+      <div class="trace-row trace-head">
+        <span>#</span>
+        <span>Karakter</span>
+        <span>Dari</span>
+        <span>Ke</span>
+        <span>Keterangan</span>
+      </div>
+      {% for step in result.trace %}
+      <div class="trace-row {{ 'bad' if step.to_state == 'qtrap' else '' }}">
+        <span>{{ loop.index }}</span>
+        <span class="mono">'{{ step.char }}'</span>
+        <span class="mono">{{ step.from_state }}</span>
+        <span class="mono">{{ step.to_state }}</span>
+        <span>{{ step.to_label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</details>
+
+<div class="hasil-actions">
+  <a class="cta-button" href="{{ url_for('index') }}">Uji Pelat Lain</a>
+</div>
+
+{% endblock %}
