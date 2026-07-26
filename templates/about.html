@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Tentang - Validator Pelat Nomor DFA{% endblock %}
+
+{% block content %}
+
+<header class="head">
+  <span class="eyebrow">TENTANG APLIKASI</span>
+  <h1>Bagaimana Mesin Ini Bekerja</h1>
+  <p class="sub">Aplikasi ini memvalidasi format pelat nomor kendaraan bermotor secara otomatis menggunakan Deterministic Finite Automaton (DFA), sebuah mesin yang membaca pelat karakter demi karakter dan berpindah antar state sampai bisa memastikan formatnya benar atau salah.</p>
+</header>
+
+<section class="info-card">
+  <h2>Alfabet Input</h2>
+  <p>Mesin ini tidak membaca huruf per huruf secara langsung, melainkan mengelompokkan setiap karakter ke dalam tiga jenis simbol lebih dulu. Hanya tiga simbol inilah yang dikenali mesin.</p>
+  <div class="alpha-grid">
+    <div class="alpha-item">
+      <span class="alpha-symbol">L</span>
+      <span class="alpha-desc">Huruf, dari A sampai Z. Dipakai untuk kode wilayah dan huruf seri.</span>
+    </div>
+    <div class="alpha-item">
+      <span class="alpha-symbol">D</span>
+      <span class="alpha-desc">Digit, dari 0 sampai 9. Dipakai untuk nomor urut.</span>
+    </div>
+    <div class="alpha-item">
+      <span class="alpha-symbol">S</span>
+      <span class="alpha-desc">Satu karakter spasi. Dipakai sebagai pemisah antar bagian pelat.</span>
+    </div>
+  </div>
+  <p>Karakter apa pun di luar ketiga jenis ini, misalnya tanda baca atau simbol lain, tidak punya simbol yang cocok sehingga langsung membawa mesin ke state jebakan qtrap.</p>
+</section>
+
+<section class="info-card">
+  <h2>Apa itu DFA</h2>
+  <p>DFA (Deterministic Finite Automaton) adalah mesin abstrak dengan sejumlah state terbatas, satu state awal, satu atau lebih state akhir, dan aturan transisi yang pasti untuk setiap kombinasi state dan simbol masukan. Karena bersifat deterministik, dari satu state hanya ada tepat satu tujuan untuk setiap simbol. Secara formal DFA didefinisikan sebagai 5-tuple:</p>
+  <div class="formula">M = (Q, &Sigma;, &delta;, q0, F)</div>
+  <ul class="formula-list">
+    <li><span class="mono">Q</span> himpunan state: q0 sampai q11, ditambah qtrap</li>
+    <li><span class="mono">&Sigma;</span> alfabet input: L (huruf), D (digit), S (spasi)</li>
+    <li><span class="mono">&delta;</span> fungsi transisi, lihat tabel transisi di bawah</li>
+    <li><span class="mono">q0</span> state awal</li>
+    <li><span class="mono">F</span> himpunan state akhir: {q9, q10, q11}</li>
+  </ul>
+</section>
+
+<section class="info-card">
+  <h2>Studi Kasus</h2>
+  <p>Pelat nomor kendaraan bermotor di Indonesia mengikuti pola umum: kode wilayah berupa 1-2 huruf, nomor urut berupa 1-4 digit, lalu huruf seri sebanyak 1-3 huruf, dengan spasi sebagai pemisah antar bagian. Jumlah digit nomor urut memang tidak selalu 4. Nomor registrasi disusun mengikuti urutan waktu pendaftaran kendaraan di suatu wilayah, jadi kendaraan yang didaftarkan lebih awal wajar mendapat nomor yang lebih pendek, ditambah ada juga "pelat nomor cantik" yang sengaja dipilih pemiliknya. Karena itu contoh dengan digit lebih sedikit seperti <span class="mono hl">D 12 AB</span> tetap masuk akal secara umum, di samping contoh 4 digit seperti <span class="mono hl">B 1234 ABC</span> yang paling umum dijumpai. DFA pada aplikasi ini membaca pelat tersebut karakter demi karakter dan memastikan urutannya sesuai pola itu.</p>
+  <div class="plate-legend">
+    <div class="legend-item"><span class="legend-swatch swatch-black"></span> Hitam - kendaraan perorangan</div>
+    <div class="legend-item"><span class="legend-swatch swatch-red"></span> Merah - kendaraan dinas pemerintah</div>
+    <div class="legend-item"><span class="legend-swatch swatch-yellow"></span> Kuning - kendaraan umum</div>
+    <div class="legend-item"><span class="legend-swatch swatch-blue"></span> Putih/biru - kendaraan listrik</div>
+  </div>
+  <p class="legend-note">Aplikasi ini hanya memvalidasi susunan karakternya, bukan warna pelat.</p>
+</section>
+
+<section class="info-card">
+  <h2>Batasan Aplikasi</h2>
+  <p>DFA ini dirancang khusus untuk pola pelat kendaraan sipil biasa (kode wilayah, nomor urut, huruf seri) seperti dijelaskan di atas. Beberapa jenis pelat khusus di Indonesia memakai pola yang sama sekali berbeda dan tidak akan pernah dinyatakan sah oleh mesin ini, meskipun pelat tersebut asli dan legal:</p>
+  <ul class="flow-list">
+    <li><strong>Pelat dinas pejabat negara</strong>, contohnya <span class="mono hl">RI 1</span> untuk Presiden. Formatnya hanya kode "RI" diikuti angka, tanpa kode wilayah dan tanpa huruf seri di belakang.</li>
+    <li><strong>Pelat korps diplomatik/konsulat</strong>, memakai kode <span class="mono hl">CD</span>, <span class="mono hl">CC</span>, atau <span class="mono hl">CH</span> dengan format angka yang berbeda dari pelat sipil biasa.</li>
+    <li><strong>Pelat instansi khusus</strong>, seperti kode <span class="mono hl">RF</span> atau <span class="mono hl">ZZ</span> yang dipakai kendaraan dinas instansi tertentu.</li>
+  </ul>
+  <p>Kalau kamu memasukkan pelat semacam itu ke validator, hasilnya akan selalu ditolak, dan itu memang perilaku yang benar karena polanya sengaja di luar cakupan DFA ini.</p>
+</section>
+
+<section class="info-card diagram-card">
+  <h2>Diagram State</h2>
+  <p>Setiap panah adalah satu transisi, diberi label simbolnya: <span class="mono hl">L</span> huruf, <span class="mono hl">D</span> digit, <span class="mono hl">S</span> spasi. Lingkaran ganda menandakan state akhir (q9, q10, q11), tempat pelat dianggap sah kalau mesin berhenti di sana. Lingkaran merah putus-putus adalah qtrap, state jebakan yang membuat pelat ditolak begitu tercapai.</p>
+
+  <div class="diagram-scroll">
+    <svg viewBox="0 0 1320 380" class="diagram-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowGrayStatic" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#5a5d66"></path>
+        </marker>
+      </defs>
+
+      {% for edge in diagram.edges %}
+      <g class="edge static">
+        <path d="{{ edge.d }}" fill="none" marker-end="url(#arrowGrayStatic)"></path>
+        <text x="{{ edge.lx }}" y="{{ edge.ly }}" class="edge-label">{{ edge.symbol }}</text>
+      </g>
+      {% endfor %}
+
+      {% for node in diagram.nodes %}
+      <g class="node {{ 'trap' if node.is_trap else '' }}">
+        {% if node.accepting %}
+        <circle cx="{{ node.x }}" cy="{{ node.y }}" r="30" class="ring-outer"></circle>
+        {% endif %}
+        <circle cx="{{ node.x }}" cy="{{ node.y }}" r="24" class="ring-inner"></circle>
+        <text x="{{ node.x }}" y="{{ node.y + 5 }}" class="node-label">{{ node.id }}</text>
+      </g>
+      {% endfor %}
+    </svg>
+  </div>
+</section>
+
+  <table class="state-table">
+    <thead>
+      <tr><th>State</th><th>Arti</th><th>State Akhir</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">q0</td><td>Kondisi awal, belum ada karakter dibaca</td><td>-</td></tr>
+      <tr><td class="mono">q1</td><td>Sudah membaca 1 huruf kode wilayah</td><td>-</td></tr>
+      <tr><td class="mono">q2</td><td>Sudah membaca 2 huruf kode wilayah</td><td>-</td></tr>
+      <tr><td class="mono">q3</td><td>Menunggu digit pertama nomor urut</td><td>-</td></tr>
+      <tr><td class="mono">q4</td><td>Sudah membaca 1 digit nomor urut</td><td>-</td></tr>
+      <tr><td class="mono">q5</td><td>Sudah membaca 2 digit nomor urut</td><td>-</td></tr>
+      <tr><td class="mono">q6</td><td>Sudah membaca 3 digit nomor urut</td><td>-</td></tr>
+      <tr><td class="mono">q7</td><td>Sudah membaca 4 digit nomor urut</td><td>-</td></tr>
+      <tr><td class="mono">q8</td><td>Menunggu huruf pertama huruf seri</td><td>-</td></tr>
+      <tr><td class="mono">q9</td><td>Sudah membaca 1 huruf seri</td><td>ya</td></tr>
+      <tr><td class="mono">q10</td><td>Sudah membaca 2 huruf seri</td><td>ya</td></tr>
+      <tr><td class="mono">q11</td><td>Sudah membaca 3 huruf seri</td><td>ya</td></tr>
+      <tr><td class="mono">qtrap</td><td>State jebakan, dicapai begitu ada karakter atau urutan yang tidak sesuai, bersifat absorbing sampai akhir input</td><td>-</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="info-card">
+  <h2>Alur Validasi</h2>
+  <ol class="flow-list">
+    <li>Input pengguna dibersihkan lalu diubah menjadi huruf kapital.</li>
+    <li>Setiap karakter diklasifikasikan ke simbol L, D, atau S. Karakter di luar itu langsung membawa mesin ke qtrap.</li>
+    <li>Mesin berpindah state sesuai tabel transisi untuk setiap karakter, satu per satu.</li>
+    <li>Setelah seluruh karakter habis, jika state akhir termasuk state akhir yang ditetapkan, pelat dinyatakan sah. Jika tidak, pelat ditolak dan alasannya ditampilkan.</li>
+  </ol>
+</section>
+
+<section class="info-card cta-card">
+  <h2>Coba Sekarang</h2>
+  <p>Kembali ke halaman beranda untuk menguji pelat nomor kamu sendiri dan melihat jejak transisi state-nya secara langsung.</p>
+  <a class="cta-button" href="{{ url_for('index') }}">Buka Validator</a>
+</section>
+
+{% endblock %}
